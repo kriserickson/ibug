@@ -47,8 +47,8 @@ var channel = new function () {
     queue[messageNumber][bitNumber] = encodedBit
         
     // If all bits in a message are here, send it.
-    if (queue[messageNumber][bitLength] >= bitLength && queue.callback) {
-      sys.puts('All bits are here, sending message');
+    if (queue[messageNumber][bitLength] >= bitLength && queue.callback) { 
+      // sys.puts('All bits are here, sending message');
       var message;
       var callback = queue.callback;
       queue.callback = null;
@@ -66,21 +66,23 @@ var channel = new function () {
     
       callback(message);
     }
-    else
-    {
-        if (!queue.callback)
-        {
-            sys.puts('No callback set');
-        }
-        else
-        {
-            sys.puts('Waiting for more bits, queueBitlength: ' + queue[messageNumber][bitLength] + ' requested: ' + bitLength);
-        }
-    }
+//    else
+//    {
+//        if (!queue.callback)
+//        {
+//            sys.puts('No callback set');
+//        }
+//        else
+//        {
+//            sys.puts('Waiting for more bits, queueBitlength: ' + queue[messageNumber][bitLength] + ' requested: ' + bitLength);
+//        }
+//    }
+
+
   };
   
-  this.listen = function (queueName, callback) {
-    sys.puts("Adding callback for channel " + queueName);
+  this.listen = function (queueName, callback) { 
+    // sys.puts('All bits are here, sending message');
     var queue = this.getQueue(queueName);
     queue.callback = callback;
   };
@@ -92,8 +94,10 @@ fu.get("/", fu.staticHandler("firebug.html"));
 fu.get("/firebug.css", fu.staticHandler("firebug.css"));
 fu.get("/firebug.js", fu.staticHandler("firebug.js"));
 fu.get("/ibug.js", fu.staticHandler("ibug.js"));
+fu.get("/warningIcon.png", fu.staticHandler("warningIcon.png"));
+fu.get("/errorIcon.png", fu.staticHandler("errorIcon.png"));
+fu.get("/infoIcon.png", fu.staticHandler("infoIcon.png"));
 
-// TODO: DRY us up!
 
 fu.get("/response", function (req, res) {
   // HACK: The message has been split, so don't decode it until it's all here.

@@ -24,8 +24,10 @@ Setup
 
 * Paste `<script type="application/x-javascript" src="http://YOUR_IP:8001/ibug.js"></script>` into the page you want to debug.
 
-* Open the page you want to debug in your browser. This is your **client**.
+* Open the page you want to debug in your phone browser. This is your **client**.
 
-* Type `alert('Hello world!')` in your console window.
+* Type `alert('Hello world!')` in your console window, if your phone displays 'Hello World' you are in business...
 
-* BAM.
+* It will then act like a firebug console, you can examine variables by typing their name... To get a proper breakdown type console.dir(varName).
+
+* The following console functions are supported: console.log, console.debug, console.info, console.warn, console.assert, console.dir, console.dirxml, console.group, console.groupEnd, console.time, console.timeEnd, console.onError, console.$ (shortcut for document.getElementById), console.$$ (shortcut for document.getElementsByTagName), console.command (default action) 

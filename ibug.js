@@ -364,7 +364,26 @@ if (!("console" in window) || !("firebug" in console)) {
     function logRow(message, className, handler) {    
         sendMessage(className + "||" + message.join(""));
     }
-        
+       
+
+    function pushGroup(message, className)
+    {
+        logFormatted(message, className);
+
+        var groupRow = consoleBody.ownerDocument.createElement("div");
+        groupRow.className = "logGroup";
+        var groupRowBox = consoleBody.ownerDocument.createElement("div");
+        groupRowBox.className = "logGroupBox";
+        groupRow.appendChild(groupRowBox);
+        appendRow(groupRowBox);
+        groupStack.push(groupRowBox);
+    }
+
+    function popGroup()
+    {
+        groupStack.pop();
+    }
+
     function logFormatted(objects, className) {
         var html = [];
 
