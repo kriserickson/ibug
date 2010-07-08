@@ -9,13 +9,9 @@ var fu = exports;
 var NOT_FOUND = "Not Found\n";
 
 function notFound(req, res) {
-  res.writeHead(404, [ ["Content-Type", "text/html"] ]);
+  res.writeHead(404, [ ["Content-Type", "text/plain"]
+                        , ["Content-Length", NOT_FOUND.length]] );
   res.write(NOT_FOUND);
-  res.write(req.url);
-  for (var i in getMap)
-  {
-    res.write(i + ' : ' + getMap[i] + '<br/>');        
-  }
   res.end();
 }
 
