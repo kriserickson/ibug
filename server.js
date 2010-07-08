@@ -47,7 +47,8 @@ var channel = new function () {
     queue[messageNumber][bitNumber] = encodedBit
         
     // If all bits in a message are here, send it.
-    if (queue[messageNumber][bitLength] == bitLength && queue.callback) {
+    if (queue[messageNumber][bitLength] >= bitLength && queue.callback) {
+      sys.puts('All bits are here, sending message');
       var message;
       var callback = queue.callback;
       queue.callback = null;
@@ -65,9 +66,21 @@ var channel = new function () {
     
       callback(message);
     }
+    else
+    {
+        if (!queue.callback)
+        {
+            sys.puts('No callback set');
+        }
+        else
+        {
+            sys.puts('Waiting for more bits, queueBitlength: ' + queue[messageNumber][bitLength] + ' requested: ' + bitLength);
+        }
+    }
   };
   
   this.listen = function (queueName, callback) {
+    sys.puts("Adding callback for channel " + queueName);
     var queue = this.getQueue(queueName);
     queue.callback = callback;
   };
@@ -89,9 +102,15 @@ fu.get("/response", function (req, res) {
   var bitLength = m[2]
   var bitNumber = m[3];
   var encodedBit = m[4];
-    
+ 
+  sys.puts("Queing Message " + messageNumber + ", encodedBit: " + encodedBit + " bitLength: " + bitLength + " bitNumber: " + bitNumber + "...");
+
   channel.queue("console", encodedBit, messageNumber, bitLength, bitNumber);
-  res.simpleJSON(200, {});
+
+  res.writeHead(404, [ ["Content-Type", "text/plain"]
+                        , ["Content-Length", 3]] );
+  res.write("OK\n");
+  res.end(); 
 });
 
 fu.get("/command", function (req, res) {

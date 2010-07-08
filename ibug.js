@@ -1,3 +1,4 @@
+var _host;
 
 if (!("console" in window) || !("firebug" in console)) {
 (function() {
@@ -151,9 +152,8 @@ if (!("console" in window) || !("firebug" in console)) {
      
     var timeMap = {},
         queue = [],
-        scriptCount = 0,
-        iframe,
-        host;
+        scriptCount = 0;
+
     
     function init() {
         // Hack: Figure out what the correct host is.
@@ -161,14 +161,11 @@ if (!("console" in window) || !("firebug" in console)) {
         for (var i = 0; i < scripts.length; i++) {
             var script = scripts[i];
             if (/ibug\.js/.test(script.src)) {
-                host = script.src.split("/")[2];
+                _host = script.src.split("/")[2];
+                break;
             }
         }
     
-        iframe = document.createElement("iframe");
-        document.body.appendChild(iframe);
-        iframe.style.display = "none";
-        listen();
     }
         
     var onload = (function(){
@@ -205,19 +202,11 @@ if (!("console" in window) || !("firebug" in console)) {
         
     function listen(){
         var script = document.createElement("script");
-        script.src = "http://" + host + "/client?s=" + scriptCount++;
+        script.src = "http://" + _host + "/client?s=" + scriptCount++;
         
         onload(script, listen);
-
-        // TODO: What about onerror?        
-        // script.onerror = listen;
-        // TODO: Throws on the Pre - what's going wrong?
-        // TODO: Is there a point to putting the script in an iframe?
-        try {
-            iframe.contentDocument.body.appendChild(script);        
-        } catch (err) {
-            window.document.body.appendChild(script);
-        }
+        document.getElementsByTagName("head")[0].appendChild(script);
+        
     }
     
     // TODO: Cleanup!
@@ -233,16 +222,19 @@ if (!("console" in window) || !("firebug" in console)) {
         var message = escape(message);        
         var bitLength = Math.ceil(message.length / MAX_BIT_LENGTH);
         var bitNumber = 0;
-        
-        for (var i = 0, step = MAX_BIT_LENGTH; i < message.length; i = i + step) {
-            var src = "http://" + host + "/response?"
-            src += "n=" + messageNumber;
-            src += "&l=" + bitLength;
-            src += "&b=" + bitNumber++;
-            src += "&m=" + message.substring(i, i + step);
-            new Image().src = src;
+
+        if (typeof(_host) != "undefined")
+        { 
+            for (var i = 0, step = MAX_BIT_LENGTH; i < message.length; i = i + step) 
+            {
+                var src = "http://" + _host + "/response?"
+                src += "n=" + messageNumber;
+                src += "&l=" + bitLength;
+                src += "&b=" + bitNumber++;
+                src += "&m=" + message.substring(i, i + step);
+                new Image().src = src;
+            } 
         }
-        
         messageNumber++;
     }
         
@@ -463,6 +455,7 @@ if (!("console" in window) || !("firebug" in console)) {
         }
     }
 
-    setTimeout(init, 0);
+   init();
+   window.addEventListener("load", listen, false);
 })();
 }

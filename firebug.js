@@ -13,9 +13,7 @@
         timeMap = {},
         clPrefix = ">>> ",
         greeting = 'Paste this into the head of any HTML pages you want to debug:',
-        codeToPaste = '<script type="application/x-javascript" src="http://' + host + '/ibug.js"></script>',
-        // JOHN
-        iframe,
+        codeToPaste = '<script type="application/x-javascript" src="http://' + host + '/ibug.js"></script>', 
         scriptCount = 0;
     
     // ********************************************************************************************
@@ -35,10 +33,7 @@
         logRow([greeting], "info");
         logRow([escapeHTML(codeToPaste)], "text");
         
-        // JOHN
-        iframe = document.createElement("iframe");
-        iframe.style.border = "none";       
-        document.body.appendChild(iframe);
+        // JOHN 
         listen();
     }
 
@@ -48,7 +43,7 @@
         // Use scriptCount to avoid caching interfering with results.
         script.src = "http://" + host + "/console?" + scriptCount++;
         script.onload = listen;
-        iframe.contentDocument.body.appendChild(script);
+        document.getElementsByTagName("head")[0].appendChild(script);
     }
     
     function focusCommandLine() {
@@ -288,6 +283,7 @@
         consoleBody.innerHTML = "";    
     };
 
-    init();
+   window.addEventListener("load", init, false);
+
     
 })();
