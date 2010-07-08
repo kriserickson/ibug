@@ -15,10 +15,12 @@ Setup
 * Download and install Node.js: http://nodejs.org/#download
 
 * Run the server: `node server.js`. 
- * You can specify host/port if you'd like: `node server.js example.com:8001`.
+ 
+* You can specify host/port if you'd like: `node server.js example.com:8001`.
 
 * Point a browser at the server, http://YOUR_IP:8001/. This is your **console**.
- * You can use 127.0.0.1 as YOUR_IP but this will not work on an actual device.
+
+* You can use 127.0.0.1 as YOUR_IP but this will not work on an actual device.
 
 * Paste `<script type="application/x-javascript" src="http://YOUR_IP:8001/ibug.js"></script>` into the page you want to debug.
 
