@@ -1,5 +1,5 @@
 var createServer = require("http").createServer;
-var process = require("posix");
+var process = require("fs");
 var sys = require("sys");
 var url = require("url");
 var DEBUG = false;
@@ -9,11 +9,14 @@ var fu = exports;
 var NOT_FOUND = "Not Found\n";
 
 function notFound(req, res) {
-  res.sendHeader(404, [ ["Content-Type", "text/plain"]
-                      , ["Content-Length", NOT_FOUND.length]
-                      ]);
-  res.sendBody(NOT_FOUND);
-  res.finish();
+  res.writeHead(404, [ ["Content-Type", "text/html"] ]);
+  res.write(NOT_FOUND);
+  res.write(req.url);
+  for (var i in getMap)
+  {
+    res.write(i + ' : ' + getMap[i] + '<br/>');        
+  }
+  res.end();
 }
 
 var getMap = {};
@@ -26,30 +29,30 @@ var server = createServer(function (req, res) {
     var handler = getMap[url.parse(req.url).pathname] || notFound;
 
     res.simpleScript = function (code, body) {
-      res.sendHeader(code, [ ["Content-Type", "application/javascript"]
+      res.writeHead(code, [ ["Content-Type", "application/javascript"]
                            , ["Content-Length", body.length]
                            , ["Pragma", "no-cache"]
                            ]);
-      res.sendBody(body);
-      res.finish();
+      res.write(body);
+      res.close();
     };
 
     res.simpleText = function (code, body) {
-      res.sendHeader(code, [ ["Content-Type", "text/plain"]
+      res.writeHead(code, [ ["Content-Type", "text/plain"]
                            , ["Content-Length", body.length]
                            ]);
-      res.sendBody(body);
-      res.finish();
+      res.write(body);
+      res.close();
     };
 
     res.simpleJSON = function (code, obj) {
       var body = JSON.stringify(obj);
-      res.sendHeader(code, [ ["Content-Type", "text/json"]
+      res.writeHead(code, [ ["Content-Type", "text/json"]
                            , ["Content-Length", body.length]
                            , ["Pragma", "no-cache"]
                            ]);
-      res.sendBody(body);
-      res.finish();
+      res.write(body);
+      res.close();
     };
 
     handler(req, res);
@@ -80,30 +83,36 @@ fu.staticHandler = function (filename) {
     }
 
     //sys.puts("loading " + filename + "...");
-    var promise = process.cat(filename, encoding);
-
-    promise.addCallback(function (data) {
-      body = data;
-      headers = [ [ "Content-Type"   , content_type ]
-                , [ "Content-Length" , body.length ]
-                ];
-//      if (!DEBUG)
-//      headers.push(["Pragma", "no-cache"]);
-       
-      //sys.puts("static file " + filename + " loaded");
-      callback();
+    process.readFile(filename, encoding, function (err, data)
+    {
+        if (err)
+        {
+            sys.puts("Error loading " + filename);
+        }
+        else
+        {
+            body = data;
+            headers = [ [ "Content-Type"   , content_type ]
+                    , [ "Content-Length" , body.length ]
+                    ];
+    //      if (!DEBUG)
+    //      headers.push(["Pragma", "no-cache"]);
+           
+          //sys.puts("static file " + filename + " loaded");
+          callback();
+       }
     });
 
-    promise.addErrback(function () {
-      sys.puts("Error loading " + filename);
-    });
+
+      
+
   }
 
   return function (req, res) {
     loadResponseData(function () {
-      res.sendHeader(200, headers);
-      res.sendBody(body, encoding);
-      res.finish();
+      res.writeHead(200, headers);
+      res.write(body, encoding);
+      res.close();
     });
   }
 };
