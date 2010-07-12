@@ -30,8 +30,8 @@
         commandLine.focus();
         commandLine.select();
         
-        logRow([greeting], "info");
-        logRow([escapeHTML(codeToPaste)], "text");
+        logRow([greeting], "info", false);
+        logRow([escapeHTML(codeToPaste)], "text", false);
         
         // JOHN 
         listen();
@@ -40,31 +40,33 @@
     // JOHN:    
     function listen() {
         var script = document.createElement("script");
+        var head = document.getElementsByTagName("head")[0];
+
         // Use scriptCount to avoid caching interfering with results.
         script.src = "http://" + host + "/console?" + scriptCount++;
-        script.onload = listen;
-        document.getElementsByTagName("head")[0].appendChild(script);
+        script.onload = function() {
+            if (head && script.parentNode)
+            {
+                head.removeChild(script);
+            }
+            listen();
+        };
+        head.insertBefore(script, head.firstChild);
     }
-    
-    function focusCommandLine() {
-        toggleConsole(true);
-        if (commandLine) {
-            commandLine.focus();
-        }
-    }
+
 
     function evalCommandLine() {
         var text = commandLine.value;
         commandLine.value = "";
         
-        appendToHistory(text);
-        logRow([clPrefix, text], "command");
+        appendToHistory(text, false);
+        logRow([clPrefix, text], "command", false);
         
         sendCommand(text);
     }
     
     function sendCommand(text) {
-        var message = escape(text).replace("+", "%2B");
+        var message = encodeURIComponent(text).replace("+", "%2B");
         var request = new XMLHttpRequest();
         // Hack: Hardcoded to a single message.
         //       Command length is limited to the max uri of the browser.
@@ -134,7 +136,8 @@
     function logFormatted(objects, className) {
         var html = [],
             format = objects[0],
-            objIndex = 0;
+            objIndex = 0,
+            object;
         
         if (typeof(format) != "string") {
             format = "";
@@ -145,17 +148,17 @@
         for (var i = 0; i < parts.length; ++i) {
             var part = parts[i];
             if (part && typeof(part) == "object") {
-                var object = objects[++objIndex];
+                object = objects[++objIndex];
                 part.appender(object, html);
             } else {
                 appendText(part, html);
             }
         }
 
-        for (var i = objIndex+1; i < objects.length; ++i) {
+        for (i = objIndex+1; i < objects.length; ++i) {
             appendText(" ", html);
             
-            var object = objects[i];
+            object = objects[i];
             if (typeof(object) == "string") {
                 appendText(object, html);
             } else {
@@ -163,7 +166,7 @@
             }
         }
         
-        logRow(html, className);
+        logRow(html, className, false);
     }
 
     function writeRow(message, className) {
@@ -192,8 +195,8 @@
 
         for (var m = reg.exec(format); m; m = reg.exec(format)) {
             var type = m[8] ? m[8] : m[5];
-                appender = type in appenderMap ? appenderMap[type] : appendObject;
-                precision = m[3] ? parseInt(m[3], 10) : (m[4] == "." ? -1 : 0);
+            var appender = type in appenderMap ? appenderMap[type] : appendObject;
+            var precision = m[3] ? parseInt(m[3], 10) : (m[4] == "." ? -1 : 0);
             
             parts.push(format.substr(0, m[0][0] == "%" ? m.index : m.index+1));
             parts.push({appender: appender, precision: precision});
@@ -207,6 +210,103 @@
     }
 
     // ********************************************************************************************
+    function objectToString(object)
+    {
+        try
+        {
+            return object+"";
+        }
+        catch (exc)
+        {
+            return null;
+        }
+    }
+
+    function appendText(object, html)
+    {
+        html.push(escapeHTML(objectToString(object)));
+    }
+
+    function appendNull(object, html)
+    {
+        html.push('<span class="objectBox-null">', escapeHTML(objectToString(object)), '</span>');
+    }
+
+    function appendString(object, html)
+    {
+        html.push('<span class="objectBox-string">&quot;', escapeHTML(objectToString(object)),
+            '&quot;</span>');
+    }
+
+
+    function appendInteger(object, html)
+    {
+        html.push('<span class="objectBox-number">', escapeHTML(objectToString(object)), '</span>');
+    }
+
+    function appendFloat(object, html)
+    {
+        html.push('<span class="objectBox-number">', escapeHTML(objectToString(object)), '</span>');
+    }
+
+    function appendObject(object, html)
+    {
+        try
+        {
+            if (object == undefined)
+                appendNull("undefined", html);
+            else if (object == null)
+                appendNull("null", html);
+            else if (typeof object == "string")
+                appendString(object, html);
+            else if (typeof object == "number")
+                appendInteger(object, html);
+            else if (typeof object == "function")
+                appendFunction(object, html);
+            else if (object.nodeType == 1)
+                appendSelector(object, html);
+            else if (typeof object == "object")
+                appendObjectFormatted(object, html);
+            else
+                appendText(object, html);
+        }
+        catch (exc)
+        {
+        }
+    }
+
+    function appendObjectFormatted(object, html)
+    {
+        var text = objectToString(object);
+        var reObject = /\[object (.*?)\]/;
+
+        var m = reObject.exec(text);
+        html.push('<span class="objectBox-object">', m ? m[1] : text, '</span>')
+    }
+
+
+    function appendSelector(object, html)
+    {
+        html.push('<span class="objectBox-selector">');
+
+        html.push('<span class="selectorTag">', escapeHTML(object.nodeName.toLowerCase()), '</span>');
+        if (object.id)
+            html.push('<span class="selectorId">#', escapeHTML(object.id), '</span>');
+        if (object.className)
+            html.push('<span class="selectorClass">.', escapeHTML(object.className), '</span>');
+
+        html.push('</span>');
+    }
+
+
+    function appendFunction(object, html)
+    {
+        var reName = /function ?(.*?)\(/;
+        var m = reName.exec(objectToString(object));
+        var name = m ? m[1] : "function";
+        html.push('<span class="objectBox-function">', escapeHTML(name), '()</span>');
+    }
+
 
     function addEvent(object, name, handler) {
         if (document.all) {
@@ -247,7 +347,8 @@
                     return "&quot;";
             }
             return "?";
-        };
+        }
+
         return String(value).replace(/[<>&"']/g, replaceChars);
     }
         
@@ -276,7 +377,7 @@
             className = lines[0];
             html = lines[1];
         }
-        logRow([html], className);
+        logRow([html], className, false);
     };
     
     window.clearConsole = function() {
