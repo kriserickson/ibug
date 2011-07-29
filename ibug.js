@@ -219,7 +219,7 @@ if (!("console" in window) || !("firebug" in console)) {
 
             var head = document.getElementsByTagName("head")[0];
 
-            script.onload = function() {
+            script.onDOMContentLoaded = function() {
                 if (head && script.parentNode)
                 {
                     head.removeChild(script);
@@ -498,6 +498,6 @@ if (!("console" in window) || !("firebug" in console)) {
         }
 
         init();
-        window.addEventListener("load", listen, false);
+        window.addEventListener("DOMContentLoaded", listen, false);
     })();
 }
