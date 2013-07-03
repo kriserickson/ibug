@@ -1,9 +1,12 @@
+This whole project is deprecated, use [Weinre](http://people.apache.org/~pmuellr/weinre/docs/latest/)
+=====================================================================================================
+
 ibug: Firebug for your (i)Phone
 ===============================
 
 Debug JavaScript on your mobile device from the comfort of your desktop browser.
 
-Originally developed by Joe Hewitt: [Announcement](http://www.joehewitt.com/blog/firebug_for_iph.php) - [Subversion](http://fbug.googlecode.com/svn/trunk/ibug/)
+Originally developed by Joe Hewitt: - [Subversion](http://fbug.googlecode.com/svn/trunk/ibug/)
 
 _This is rough around the edges._
 
